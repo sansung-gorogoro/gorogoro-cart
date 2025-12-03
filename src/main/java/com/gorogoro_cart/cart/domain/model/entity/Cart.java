@@ -1,24 +1,21 @@
 package com.gorogoro_cart.cart.domain.model.entity;
 
 import com.gorogoro_cart.cart.domain.model.vo.CartItem;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import java.util.ArrayList;
 import java.util.List;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
-@Entity
-@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+@Getter
 public class Cart {
+    private final Long id;
+    private final Long userId;
+    private final List<CartItem> cartItems = new ArrayList<>();
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false, unique = true)
-    private Long userId;
-
-    private List<CartItem> cartItems;
+    private Cart(Long id, Long userId, List<CartItem> cartItems) {
+        this.id = id;
+        this.userId = userId;
+        if (cartItems != null) {
+            this.cartItems.addAll(cartItems);
+        }
+    }
 }

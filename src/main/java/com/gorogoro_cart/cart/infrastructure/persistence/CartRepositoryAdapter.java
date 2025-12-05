@@ -36,6 +36,7 @@ public class CartRepositoryAdapter implements CartRepository {
         Long userId = cart.getUserId();
 
         itemJpaRepository.deleteAllByUserId(userId);
+        itemJpaRepository.flush();
 
         List<CartItemJpaEntity> entities = cart.getCartItems().stream()
                 .map(item -> CartItemJpaEntity.fromDomain(userId, item))

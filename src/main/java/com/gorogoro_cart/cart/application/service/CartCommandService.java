@@ -1,7 +1,11 @@
 package com.gorogoro_cart.cart.application.service;
 
 import com.gorogoro_cart.cart.application.port.in.AddCourseToCartUseCase;
+import com.gorogoro_cart.cart.application.port.in.ClearCartUseCase;
 import com.gorogoro_cart.cart.application.port.in.command.AddCourseToCartCommand;
+import com.gorogoro_cart.cart.application.port.in.command.ClearCartCommand;
+import com.gorogoro_cart.cart.common.exception.BusinessException;
+import com.gorogoro_cart.cart.common.exception.ErrorCode;
 import com.gorogoro_cart.cart.domain.model.entity.Cart;
 import com.gorogoro_cart.cart.domain.repository.CartRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class CartCommandService implements AddCourseToCartUseCase {
+public class CartCommandService implements AddCourseToCartUseCase, ClearCartUseCase {
     private final CartRepository cartRepository;
 
     @Override
@@ -23,6 +27,17 @@ public class CartCommandService implements AddCourseToCartUseCase {
                 .orElseGet(() -> Cart.create(userId));
 
         cart.addCourse(courseId);
+        cartRepository.save(cart);
+    }
+
+    @Override
+    public void clearCart(ClearCartCommand command) {
+        Long userId = command.userId();
+
+        Cart cart = cartRepository.findAllByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CART_NOT_FOUND));
+
+        cart.clear();
         cartRepository.save(cart);
     }
 }

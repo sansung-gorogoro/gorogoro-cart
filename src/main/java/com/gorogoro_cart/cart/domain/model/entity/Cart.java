@@ -1,7 +1,7 @@
 package com.gorogoro_cart.cart.domain.model.entity;
 
 import com.gorogoro_cart.cart.domain.model.vo.CartItem;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -31,9 +31,9 @@ public class Cart {
         Objects.requireNonNull(courseId, "courseId must not be null");
         boolean exists = cartItems.stream()
                 .anyMatch(item -> item.getCourseId().equals(courseId));
-        
+
         if (!exists) {
-            cartItems.add(CartItem.of(courseId, LocalDateTime.now()));
+            cartItems.add(CartItem.of(courseId, Instant.now()));
         }
     }
 

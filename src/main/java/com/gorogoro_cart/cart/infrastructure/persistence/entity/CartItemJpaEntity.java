@@ -8,7 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -33,9 +33,9 @@ public class CartItemJpaEntity {
     private Long courseId;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime addedAt;
+    private Instant addedAt;
 
-    private CartItemJpaEntity(Long userId, Long courseId, LocalDateTime addedAt) {
+    private CartItemJpaEntity(Long userId, Long courseId, Instant addedAt) {
         this.userId = userId;
         this.courseId = courseId;
         this.addedAt = addedAt;

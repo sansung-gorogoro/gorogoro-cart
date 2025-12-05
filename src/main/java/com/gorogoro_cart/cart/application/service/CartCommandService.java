@@ -19,7 +19,7 @@ public class CartCommandService implements AddCourseToCartUseCase {
         Long userId = command.userId();
         Long courseId = command.courseId();
 
-        Cart cart = cartRepository.findByUserId(userId)
+        Cart cart = cartRepository.findAllByUserId(userId)
                 .orElseGet(() -> Cart.create(userId));
 
         cart.addCourse(courseId);

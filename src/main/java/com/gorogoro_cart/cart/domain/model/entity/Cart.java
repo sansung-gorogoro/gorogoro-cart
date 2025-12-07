@@ -7,16 +7,15 @@ import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
 
-@Getter
 public class Cart {
+
+    @Getter
     private final Long userId;
-    private final List<CartItem> cartItems = new ArrayList<>();
+    private final List<CartItem> cartItems;
 
     private Cart(Long userId, List<CartItem> cartItems) {
         this.userId = Objects.requireNonNull(userId, "userId must not be null.");
-        if (cartItems != null) {
-            this.cartItems.addAll(cartItems);
-        }
+        this.cartItems = new ArrayList<>(cartItems);
     }
 
     public static Cart create(Long userId) {

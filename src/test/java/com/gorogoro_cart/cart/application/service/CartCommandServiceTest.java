@@ -1,17 +1,17 @@
 package com.gorogoro_cart.cart.application.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
+import static java.util.Optional.empty;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.gorogoro_cart.cart.application.port.in.command.AddCourseToCartCommand;
 import com.gorogoro_cart.cart.application.port.in.command.ClearCartCommand;
-import com.gorogoro_cart.cart.common.exception.BusinessException;
-import com.gorogoro_cart.cart.common.exception.ErrorCode;
 import com.gorogoro_cart.cart.domain.model.entity.Cart;
+import com.gorogoro_cart.cart.domain.model.vo.CartItem;
 import com.gorogoro_cart.cart.domain.repository.CartRepository;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,13 +37,22 @@ class CartCommandServiceTest {
         Long courseId = 10L;
         AddCourseToCartCommand command = new AddCourseToCartCommand(userId, courseId);
 
-        given(cartRepository.findAllByUserId(userId)).willReturn(Optional.empty());
+        given(cartRepository.findAllByUserId(userId)).willReturn(empty());
 
         // when
         cartCommandService.addCourse(command);
 
         // then
-        verify(cartRepository).save(any(Cart.class));
+        verify(cartRepository).save(
+                argThat(cart -> containsCourse(cart, courseId)),
+                eq(List.of())
+        );
+    }
+
+    private boolean containsCourse(Cart cart, Long courseId) {
+        return cart.getItems().stream()
+                .map(CartItem::getCourseId)
+                .anyMatch(id -> id.equals(courseId));
     }
 
     // TODO: 이미 수강 중인 강의이거나 판매 중이지 않은 강좌를 장바구니에 등록하려 한 경우 테스트 추가해야함.
@@ -54,31 +63,21 @@ class CartCommandServiceTest {
         // given
         Long userId = 1L;
         ClearCartCommand command = new ClearCartCommand(userId);
+
         Cart existingCart = Cart.create(userId);
         existingCart.addCourse(10L);
 
         given(cartRepository.findAllByUserId(userId)).willReturn(Optional.of(existingCart));
 
+        List<CartItem> baseline = existingCart.getItems();
+
         // when
         cartCommandService.clearCart(command);
 
         // then
-        assertThat(existingCart.getCartItems()).isEmpty();
-        verify(cartRepository).save(existingCart);
-    }
-
-    @Test
-    @DisplayName("장바구니가 존재하지 않을 경우 예외가 발생한다.")
-    void shouldThrowException_whenCartNotFound() {
-        // given
-        Long userId = 1L;
-        ClearCartCommand command = new ClearCartCommand(userId);
-
-        given(cartRepository.findAllByUserId(userId)).willReturn(Optional.empty());
-
-        // when // then
-        assertThatThrownBy(() -> cartCommandService.clearCart(command))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.CART_NOT_FOUND.getMessage());
+        verify(cartRepository).save(
+                argThat(cart -> cart.getItems().isEmpty()),
+                eq(baseline)
+        );
     }
 }

@@ -4,8 +4,6 @@ import com.gorogoro_cart.cart.application.port.in.AddCourseToCartUseCase;
 import com.gorogoro_cart.cart.application.port.in.ClearCartUseCase;
 import com.gorogoro_cart.cart.application.port.in.command.AddCourseToCartCommand;
 import com.gorogoro_cart.cart.application.port.in.command.ClearCartCommand;
-import com.gorogoro_cart.cart.common.exception.BusinessException;
-import com.gorogoro_cart.cart.common.exception.ErrorCode;
 import com.gorogoro_cart.cart.domain.model.entity.Cart;
 import com.gorogoro_cart.cart.domain.repository.CartRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,24 +18,20 @@ public class CartCommandService implements AddCourseToCartUseCase, ClearCartUseC
 
     @Override
     public void addCourse(AddCourseToCartCommand command) {
-        Long userId = command.userId();
-        Long courseId = command.courseId();
-
-        Cart cart = cartRepository.findAllByUserId(userId)
-                .orElseGet(() -> Cart.create(userId));
-
-        cart.addCourse(courseId);
+        Cart cart = getCart(command.userId());
+        cart.addCourse(command.courseId());
         cartRepository.save(cart);
     }
 
     @Override
     public void clearCart(ClearCartCommand command) {
-        Long userId = command.userId();
-
-        Cart cart = cartRepository.findAllByUserId(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.CART_NOT_FOUND));
-
+        Cart cart = getCart(command.userId());
         cart.clear();
         cartRepository.save(cart);
+    }
+
+    private Cart getCart(Long userId) {
+        return cartRepository.findAllByUserId(userId)
+                .orElseGet(() -> Cart.create(userId));
     }
 }

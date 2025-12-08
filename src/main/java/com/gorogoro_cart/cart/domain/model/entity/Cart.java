@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class Cart {
 
     @Getter
@@ -28,10 +30,11 @@ public class Cart {
 
     public void addCourse(Long courseId) {
         Objects.requireNonNull(courseId, "courseId must not be null");
-        boolean exists = cartItems.stream()
+        boolean itemExists = cartItems.stream()
                 .anyMatch(item -> item.getCourseId().equals(courseId));
 
-        if (!exists) {
+        if (!itemExists) {
+            log.info("Cart_log : add duplicated course to user's cart.");
             cartItems.add(CartItem.of(courseId, Instant.now()));
         }
     }

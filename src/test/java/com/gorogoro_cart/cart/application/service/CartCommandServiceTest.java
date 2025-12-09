@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 
 import com.gorogoro_cart.cart.application.port.in.command.AddCourseToCartCommand;
 import com.gorogoro_cart.cart.application.port.in.command.ClearCartCommand;
+import com.gorogoro_cart.cart.application.port.in.command.RemoveCartItemCommand;
 import com.gorogoro_cart.cart.domain.model.entity.Cart;
 import com.gorogoro_cart.cart.domain.model.vo.CartItem;
 import com.gorogoro_cart.cart.domain.repository.CartRepository;
@@ -77,6 +78,35 @@ class CartCommandServiceTest {
         // then
         verify(cartRepository).save(
                 argThat(cart -> cart.getItems().isEmpty()),
+                eq(baseline)
+        );
+    }
+
+    @Test
+    @DisplayName("장바구니에서 특정 아이템 한 개를 삭제할 수 있다.")
+    void shouldRemoveSingleItemFromCart() {
+        // given
+        Long userId = 1L;
+        Long courseIdToRemove = 101L;
+        RemoveCartItemCommand command = new RemoveCartItemCommand(userId, courseIdToRemove);
+
+        Cart existingCart = Cart.create(userId);
+        existingCart.addCourse(100L);
+        existingCart.addCourse(101L);
+
+        given(cartRepository.findAllByUserId(userId)).willReturn(Optional.of(existingCart));
+
+        List<CartItem> baseline = existingCart.getItems();
+
+        // when
+        cartCommandService.removeCartItem(command);
+
+        // then
+        verify(cartRepository).save(
+                argThat(cart -> {
+                    List<Long> remainingIds = cart.getItems().stream().map(CartItem::getCourseId).toList();
+                    return remainingIds.size() == 1 && remainingIds.contains(100L);
+                }),
                 eq(baseline)
         );
     }

@@ -2,8 +2,10 @@ package com.gorogoro_cart.cart.application.service;
 
 import com.gorogoro_cart.cart.application.port.in.AddCourseToCartUseCase;
 import com.gorogoro_cart.cart.application.port.in.ClearCartUseCase;
+import com.gorogoro_cart.cart.application.port.in.RemoveCartItemUseCase;
 import com.gorogoro_cart.cart.application.port.in.command.AddCourseToCartCommand;
 import com.gorogoro_cart.cart.application.port.in.command.ClearCartCommand;
+import com.gorogoro_cart.cart.application.port.in.command.RemoveCartItemCommand;
 import com.gorogoro_cart.cart.domain.model.entity.Cart;
 import com.gorogoro_cart.cart.domain.model.vo.CartItem;
 import com.gorogoro_cart.cart.domain.repository.CartRepository;
@@ -15,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class CartCommandService implements AddCourseToCartUseCase, ClearCartUseCase {
+public class CartCommandService implements AddCourseToCartUseCase, ClearCartUseCase, RemoveCartItemUseCase {
     private final CartRepository cartRepository;
 
     @Override
@@ -51,5 +53,16 @@ public class CartCommandService implements AddCourseToCartUseCase, ClearCartUseC
             return Cart.create(userId);
         }
         return Cart.create(userId, baselineItems);
+    }
+
+    @Override
+    public void removeCartItem(RemoveCartItemCommand command) {
+        Long userId = command.userId();
+
+        List<CartItem> baselineItems = loadBaselineItems(userId);
+        Cart targetCart = buildTargetCart(userId, baselineItems);
+        targetCart.removeCourse(command.courseId());
+
+        cartRepository.save(targetCart, baselineItems);
     }
 }

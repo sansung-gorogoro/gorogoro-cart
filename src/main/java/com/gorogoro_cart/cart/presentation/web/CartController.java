@@ -7,6 +7,7 @@ import com.gorogoro_cart.cart.application.port.in.command.AddCourseToCartCommand
 import com.gorogoro_cart.cart.application.port.in.command.ClearCartCommand;
 import com.gorogoro_cart.cart.application.port.in.command.RemoveCartItemCommand;
 import com.gorogoro_cart.cart.presentation.web.dto.AddCartRequest;
+import com.gorogoro_cart.cart.presentation.web.dto.RemoveCartItemRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -50,9 +50,9 @@ public class CartController {
     @DeleteMapping("/items")
     public ResponseEntity<Void> removeCartItem(
             @RequestHeader(HEADER_USER_ID) Long userId,
-            @RequestParam Long courseId
+            @Valid @RequestBody RemoveCartItemRequest request
     ) {
-        RemoveCartItemCommand command = new RemoveCartItemCommand(userId, courseId);
+        RemoveCartItemCommand command = new RemoveCartItemCommand(userId, request.courseId());
         removeCartItemUseCase.removeCartItem(command);
         return ResponseEntity.noContent().build();
     }

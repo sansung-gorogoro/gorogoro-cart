@@ -11,9 +11,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,14 +22,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("api/v1/carts")
 @RequiredArgsConstructor
 public class CartController {
+    private static final String HEADER_USER_ID = "X-User-Id";
+
     private final AddCourseToCartUseCase addCourseToCartUseCase;
     private final ClearCartUseCase clearCartUseCase;
     private final RemoveCartItemUseCase removeCartItemUseCase;
 
-    // TODO : userId 유무 확인 필요 -> 임시로 PathVariable 사용
-    @PostMapping("/{userId}")
+    @PostMapping
     public ResponseEntity<Void> addCourseToCart(
-            @PathVariable Long userId,
+            @RequestHeader(HEADER_USER_ID) Long userId,
             @Valid @RequestBody AddCartRequest request
     ) {
         AddCourseToCartCommand command = new AddCourseToCartCommand(userId, request.courseId());
@@ -37,18 +38,18 @@ public class CartController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{userId}")
+    @DeleteMapping
     public ResponseEntity<Void> clearCart(
-            @PathVariable Long userId
+            @RequestHeader(HEADER_USER_ID) Long userId
     ) {
         ClearCartCommand command = new ClearCartCommand(userId);
         clearCartUseCase.clearCart(command);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{userId}/items")
+    @DeleteMapping("/items")
     public ResponseEntity<Void> removeCartItem(
-            @PathVariable Long userId,
+            @RequestHeader(HEADER_USER_ID) Long userId,
             @RequestParam Long courseId
     ) {
         RemoveCartItemCommand command = new RemoveCartItemCommand(userId, courseId);

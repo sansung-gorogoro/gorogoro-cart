@@ -6,17 +6,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
-@Getter
+@Slf4j
 public class Cart {
+
+    @Getter
     private final Long userId;
-    private final List<CartItem> cartItems = new ArrayList<>();
+    private final List<CartItem> cartItems;
 
     private Cart(Long userId, List<CartItem> cartItems) {
         this.userId = Objects.requireNonNull(userId, "userId must not be null.");
-        if (cartItems != null) {
-            this.cartItems.addAll(cartItems);
-        }
+        this.cartItems = new ArrayList<>(cartItems);
     }
 
     public static Cart create(Long userId) {
@@ -29,10 +30,11 @@ public class Cart {
 
     public void addCourse(Long courseId) {
         Objects.requireNonNull(courseId, "courseId must not be null");
-        boolean exists = cartItems.stream()
+        boolean itemExists = cartItems.stream()
                 .anyMatch(item -> item.getCourseId().equals(courseId));
 
-        if (!exists) {
+        if (!itemExists) {
+            log.info("Cart_log : add duplicated course to user's cart.");
             cartItems.add(CartItem.of(courseId, Instant.now()));
         }
     }

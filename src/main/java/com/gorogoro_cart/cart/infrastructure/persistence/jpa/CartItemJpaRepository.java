@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface CartItemJpaRepository extends JpaRepository<CartItemJpaEntity, Long> {
     List<CartItemJpaEntity> findAllByUserId(Long userId);
 
-    void deleteAllByUserId(Long userId);
+    void deleteByUserIdAndCourseIdIn(Long userId, List<Long> courseIds);
 }

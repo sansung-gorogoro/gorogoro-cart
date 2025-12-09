@@ -1,17 +1,15 @@
 package com.gorogoro_cart.cart.domain.repository;
 
-import com.gorogoro_cart.cart.domain.model.entity.Cart;
-import com.gorogoro_cart.cart.domain.model.vo.CartItem;
-import java.util.List;
-import java.util.Optional;
+import com.gorogoro_cart.cart.domain.model.CartItem;
+import org.springframework.data.jpa.repository.Modifying;
 
 public interface CartRepository {
-    Optional<Cart> findAllByUserId(Long userId);
+    void save(CartItem item);
 
-    /**
-     * - targetCart: 도메인에서 최종 상태로 완성된 Cart
-     * <p>
-     * - baselineItems: 저장 직전에 이미 알고 있는 기존 상태(서비스가 조회한 원본)
-     */
-    void save(Cart targetCart, List<CartItem> baselineItems);
+    boolean existsByUserIdAndCourseId(Long userId, Long courseId);
+
+    @Modifying
+    void deleteAllByUserId(Long userId);
+
+    void deleteByUserIdAndCourseId(Long userId, Long courseId);
 }

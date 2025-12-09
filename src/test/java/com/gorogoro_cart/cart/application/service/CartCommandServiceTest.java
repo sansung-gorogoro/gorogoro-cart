@@ -1,19 +1,14 @@
 package com.gorogoro_cart.cart.application.service;
 
-import static java.util.Optional.empty;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.gorogoro_cart.cart.application.port.in.command.AddCourseToCartCommand;
 import com.gorogoro_cart.cart.application.port.in.command.ClearCartCommand;
 import com.gorogoro_cart.cart.application.port.in.command.RemoveCartItemCommand;
-import com.gorogoro_cart.cart.domain.model.entity.Cart;
-import com.gorogoro_cart.cart.domain.model.vo.CartItem;
+import com.gorogoro_cart.cart.domain.model.CartItem;
 import com.gorogoro_cart.cart.domain.repository.CartRepository;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,22 +33,13 @@ class CartCommandServiceTest {
         Long courseId = 10L;
         AddCourseToCartCommand command = new AddCourseToCartCommand(userId, courseId);
 
-        given(cartRepository.findAllByUserId(userId)).willReturn(empty());
+        given(cartRepository.existsByUserIdAndCourseId(userId, courseId)).willReturn(false);
 
         // when
         cartCommandService.addCourse(command);
 
         // then
-        verify(cartRepository).save(
-                argThat(cart -> containsCourse(cart, courseId)),
-                eq(List.of())
-        );
-    }
-
-    private boolean containsCourse(Cart cart, Long courseId) {
-        return cart.getItems().stream()
-                .map(CartItem::getCourseId)
-                .anyMatch(id -> id.equals(courseId));
+        verify(cartRepository).save(any(CartItem.class));
     }
 
     // TODO: 이미 수강 중인 강의이거나 판매 중이지 않은 강좌를 장바구니에 등록하려 한 경우 테스트 추가해야함.
@@ -65,21 +51,11 @@ class CartCommandServiceTest {
         Long userId = 1L;
         ClearCartCommand command = new ClearCartCommand(userId);
 
-        Cart existingCart = Cart.create(userId);
-        existingCart.addCourse(10L);
-
-        given(cartRepository.findAllByUserId(userId)).willReturn(Optional.of(existingCart));
-
-        List<CartItem> baseline = existingCart.getItems();
-
         // when
         cartCommandService.clearCart(command);
 
         // then
-        verify(cartRepository).save(
-                argThat(cart -> cart.getItems().isEmpty()),
-                eq(baseline)
-        );
+        verify(cartRepository).deleteAllByUserId(userId);
     }
 
     @Test
@@ -87,27 +63,13 @@ class CartCommandServiceTest {
     void shouldRemoveSingleItemFromCart() {
         // given
         Long userId = 1L;
-        Long courseIdToRemove = 101L;
-        RemoveCartItemCommand command = new RemoveCartItemCommand(userId, courseIdToRemove);
-
-        Cart existingCart = Cart.create(userId);
-        existingCart.addCourse(100L);
-        existingCart.addCourse(101L);
-
-        given(cartRepository.findAllByUserId(userId)).willReturn(Optional.of(existingCart));
-
-        List<CartItem> baseline = existingCart.getItems();
+        Long courseId = 10L;
+        RemoveCartItemCommand command = new RemoveCartItemCommand(userId, courseId);
 
         // when
         cartCommandService.removeCartItem(command);
 
         // then
-        verify(cartRepository).save(
-                argThat(cart -> {
-                    List<Long> remainingIds = cart.getItems().stream().map(CartItem::getCourseId).toList();
-                    return remainingIds.size() == 1 && remainingIds.contains(100L);
-                }),
-                eq(baseline)
-        );
+        verify(cartRepository).deleteByUserIdAndCourseId(userId, courseId);
     }
 }

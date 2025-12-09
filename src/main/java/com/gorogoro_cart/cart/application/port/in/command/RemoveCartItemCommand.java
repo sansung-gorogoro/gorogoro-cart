@@ -3,7 +3,7 @@ package com.gorogoro_cart.cart.application.port.in.command;
 import jakarta.validation.constraints.NotNull;
 
 public record RemoveCartItemCommand(
-        @NotNull(message = "user id must not be null") Long userId,
-        @NotNull(message = "course id must not be null") Long courseId
+        @NotNull(message = "사용자 ID는 null일 수 없습니다.") Long userId,
+        @NotNull(message = "강좌 ID는 null일 수 없습니다.") Long courseId
 ) {
 }

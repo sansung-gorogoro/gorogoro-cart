@@ -6,14 +6,15 @@ import com.gorogoro_cart.cart.application.port.in.RemoveCartItemUseCase;
 import com.gorogoro_cart.cart.application.port.in.command.AddCourseToCartCommand;
 import com.gorogoro_cart.cart.application.port.in.command.ClearCartCommand;
 import com.gorogoro_cart.cart.application.port.in.command.RemoveCartItemCommand;
-import com.gorogoro_cart.cart.domain.model.entity.Cart;
-import com.gorogoro_cart.cart.domain.model.vo.CartItem;
+import com.gorogoro_cart.cart.domain.model.CartItem;
 import com.gorogoro_cart.cart.domain.repository.CartRepository;
-import java.util.List;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -22,47 +23,21 @@ public class CartCommandService implements AddCourseToCartUseCase, ClearCartUseC
 
     @Override
     public void addCourse(AddCourseToCartCommand command) {
-        Long userId = command.userId();
-
-        List<CartItem> baselineItems = loadBaselineItems(userId);
-        Cart targetCart = buildTargetCart(userId, baselineItems);
-        targetCart.addCourse(command.courseId());
-
-        cartRepository.save(targetCart, baselineItems);
+        if (cartRepository.existsByUserIdAndCourseId(command.userId(), command.courseId())) {
+            log.debug("Duplicated cart item. userId: {}, courseId: {}", command.userId(), command.courseId());
+            return;
+        }
+        CartItem newItem = CartItem.of(command.userId(), command.courseId(), Instant.now());
+        cartRepository.save(newItem);
     }
 
     @Override
     public void clearCart(ClearCartCommand command) {
-        Long userId = command.userId();
-
-        List<CartItem> baselineItems = loadBaselineItems(userId);
-        Cart targetCart = buildTargetCart(userId, baselineItems);
-        targetCart.clear();
-
-        cartRepository.save(targetCart, baselineItems);
-    }
-
-    private List<CartItem> loadBaselineItems(Long userId) {
-        return cartRepository.findAllByUserId(userId)
-                .map(Cart::getItems)
-                .orElseGet(List::of);
-    }
-
-    private Cart buildTargetCart(Long userId, List<CartItem> baselineItems) {
-        if (baselineItems.isEmpty()) {
-            return Cart.create(userId);
-        }
-        return Cart.create(userId, baselineItems);
+        cartRepository.deleteAllByUserId(command.userId());
     }
 
     @Override
     public void removeCartItem(RemoveCartItemCommand command) {
-        Long userId = command.userId();
-
-        List<CartItem> baselineItems = loadBaselineItems(userId);
-        Cart targetCart = buildTargetCart(userId, baselineItems);
-        targetCart.removeCourse(command.courseId());
-
-        cartRepository.save(targetCart, baselineItems);
+        cartRepository.deleteByUserIdAndCourseId(command.userId(), command.courseId());
     }
 }

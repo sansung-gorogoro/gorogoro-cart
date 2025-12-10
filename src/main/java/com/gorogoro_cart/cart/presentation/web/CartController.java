@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("api/v1/carts")
+@RequestMapping("api/carts")
 @RequiredArgsConstructor
 public class CartController {
     private static final String HEADER_USER_ID = "X-User-Id";

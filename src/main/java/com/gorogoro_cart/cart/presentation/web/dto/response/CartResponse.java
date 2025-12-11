@@ -3,8 +3,8 @@ package com.gorogoro_cart.cart.presentation.web.dto.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gorogoro_cart.cart.application.port.in.dto.CartDetailsDto;
 import com.gorogoro_cart.cart.application.port.out.dto.CourseDetailDto;
-import java.util.Objects;
 import java.util.List;
+import java.util.Objects;
 
 public record CartResponse(
         @JsonProperty("owner_id")
@@ -47,5 +47,4 @@ public record CartResponse(
                         subCategory.subCategoryId(),
                         subCategory.name()));
     }
-
 }

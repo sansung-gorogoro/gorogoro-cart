@@ -27,7 +27,6 @@ public class CourseAdapter implements CoursePort {
 
         Mono<List<CourseDetailDto>> mono = webClient.get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/api/internal/courses")
                         .queryParam("courseIds", (Object[]) idsArray)
                         .build())
                 .retrieve()

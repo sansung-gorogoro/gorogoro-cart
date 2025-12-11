@@ -8,31 +8,26 @@ import com.gorogoro_cart.cart.application.port.out.CoursePort;
 import com.gorogoro_cart.cart.application.port.out.dto.CourseDetailDto;
 import com.gorogoro_cart.cart.domain.model.CartItem;
 import com.gorogoro_cart.cart.domain.repository.CartRepository;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CartQueryService implements FindCartItemsUseCase {
-
     private final CartRepository cartRepository;
     private final CoursePort coursePort;
 
     @Override
     public CartDetailsDto findCartItems(Long userId) {
         List<CartItem> cartItems = cartRepository.findAllByUserId(userId);
-        if (cartItems.isEmpty()) {
-            return new CartDetailsDto(userId, Collections.emptyList(), new SummaryDto(0, 0));
-        }
-
         Map<Long, CourseDetailDto> courseDetailsMap = getCourseDetailsMap(cartItems);
         List<CartItemDto> itemDtos = combineCartAndCourseDetails(cartItems, courseDetailsMap);
         SummaryDto summary = SummaryDto.from(itemDtos);
@@ -53,14 +48,18 @@ public class CartQueryService implements FindCartItemsUseCase {
                                                           Map<Long, CourseDetailDto> courseDetailsMap) {
         return cartItems.stream()
                 .map(item -> {
-                    CourseDetailDto detail = courseDetailsMap.get(item.getCourseId());
-                    if (detail == null) {
-                        return null;
-                    }
-                    return CartItemDto.of(item, detail);
+                    CourseDetailDto courseDetail = courseDetailsMap.get(item.getCourseId());
+                    validateCourseDetail(item, courseDetail);
+                    return CartItemDto.of(item, courseDetail);
                 })
-                .filter(Objects::nonNull)
                 .toList();
+    }
+
+    private void validateCourseDetail(CartItem item, CourseDetailDto courseDetail) {
+        if (courseDetail == null) {
+            log.warn("Course detail not found for courseId {}", item.getCourseId());
+            throw new IllegalStateException("Missing course detail for courseId " + item.getCourseId());
+        }
     }
 }
         

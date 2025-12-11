@@ -1,5 +1,6 @@
 package com.gorogoro_cart.cart.application.port.out.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record CourseDetailDto(
@@ -13,7 +14,9 @@ public record CourseDetailDto(
     public record CategoryDetail(
             @JsonProperty("categoryId") Long categoryId,
             @JsonProperty("name") String name,
-            @JsonProperty("subCategoryDetailDto") SubCategoryDetail subCategoryDetail
+            @JsonProperty("subCategoryDetail")
+            @JsonAlias("subCategoryDetailDto")
+            SubCategoryDetail subCategoryDetail
     ) {
     }
 

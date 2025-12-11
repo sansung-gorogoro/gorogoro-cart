@@ -1,4 +1,4 @@
-package com.gorogoro_cart.cart.presentation.web.dto;
+package com.gorogoro_cart.cart.presentation.web.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 

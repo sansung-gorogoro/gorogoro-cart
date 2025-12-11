@@ -4,49 +4,34 @@ import com.gorogoro_cart.cart.application.port.out.CoursePort;
 import com.gorogoro_cart.cart.application.port.out.dto.CourseDetailDto;
 import com.gorogoro_cart.cart.common.exception.BusinessException;
 import com.gorogoro_cart.cart.common.exception.ErrorCode;
+import feign.FeignException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.ClientResponse;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
 public class CourseAdapter implements CoursePort {
-    private final WebClient webClient;
+    private final CourseFeignClient courseFeignClient;
 
     @Override
+    @CircuitBreaker(name = "courseClient", fallbackMethod = "fallbackCourseDetails")
     public List<CourseDetailDto> findCourseDetailsByIds(List<Long> courseIds) {
         if (courseIds == null || courseIds.isEmpty()) {
-            return List.of();
+            throw new BusinessException(ErrorCode.MISSING_REQUEST_PARAMETER, "courseIds");
         }
-
-        String[] idsArray = courseIds.stream()
-                .map(String::valueOf)
-                .toArray(String[]::new);
-
-        Mono<List<CourseDetailDto>> mono = webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .queryParam("courseIds", (Object[]) idsArray)
-                        .build())
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, this::handleWebClientError)
-                .bodyToFlux(CourseDetailDto.class)
-                .collectList();
-
-        return mono.block();
+        try {
+            return courseFeignClient.findCourseDetailsByIds(courseIds);
+        } catch (FeignException e) {
+            String body = e.contentUTF8();
+            String detail = "Course service error. status=%s, body=%s".formatted(e.status(), body);
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, detail);
+        }
     }
 
-    private Mono<? extends Throwable> handleWebClientError(ClientResponse clientResponse) {
-        return clientResponse.bodyToMono(String.class)
-                .flatMap(errorBody -> Mono.error(
-                        new BusinessException(
-                                ErrorCode.INTERNAL_SERVER_ERROR,
-                                "Course service error. status=%s, body=%s".formatted(
-                                        clientResponse.statusCode(), errorBody)
-                        )
-                ));
+    @SuppressWarnings("unused")
+    private List<CourseDetailDto> fallbackCourseDetails(List<Long> courseIds, Throwable throwable) {
+        throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "Course service fallback triggered: " + throwable.getMessage());
     }
 }

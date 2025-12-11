@@ -3,6 +3,7 @@ package com.gorogoro_cart.cart.infrastructure.persistence;
 import com.gorogoro_cart.cart.domain.model.CartItem;
 import com.gorogoro_cart.cart.domain.repository.CartRepository;
 import com.gorogoro_cart.cart.infrastructure.persistence.jpa.CartJpaRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -29,5 +30,10 @@ public class CartRepositoryAdapter implements CartRepository {
     @Override
     public void deleteByUserIdAndCourseId(Long userId, Long courseId) {
         itemJpaRepository.deleteByUserIdAndCourseId(userId, courseId);
+    }
+
+    @Override
+    public List<CartItem> findAllByUserId(final Long userId) {
+        return itemJpaRepository.findAllByUserId(userId);
     }
 }

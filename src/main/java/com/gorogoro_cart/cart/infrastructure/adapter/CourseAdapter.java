@@ -38,7 +38,7 @@ public class CourseAdapter implements CoursePort {
 
     private void validateCourseIds(List<Long> courseIds) {
         if (courseIds == null) {
-            throw new BusinessException(ErrorCode.MISSING_REQUEST_PARAMETER, "courseIds must not be null");
+            throw new BusinessException(ErrorCode.MISSING_REQUEST_PARAMETER);
         }
     }
 

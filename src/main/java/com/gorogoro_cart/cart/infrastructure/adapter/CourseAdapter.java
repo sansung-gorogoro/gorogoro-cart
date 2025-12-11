@@ -16,7 +16,6 @@ import reactor.core.publisher.Mono;
 public class CourseAdapter implements CoursePort {
     private final WebClient webClient;
 
-    @Override
     public boolean isCoursePurchasable(Long courseId) {
         return Boolean.TRUE.equals(webClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/api/courses/{courseId}/purchasable").build(courseId))

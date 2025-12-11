@@ -3,7 +3,6 @@ package com.gorogoro_cart.cart.infrastructure.adapter;
 import com.gorogoro_cart.cart.application.port.out.CoursePort;
 import com.gorogoro_cart.cart.application.port.out.dto.CourseDetailDto;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
@@ -16,32 +15,27 @@ import reactor.core.publisher.Mono;
 public class CourseAdapter implements CoursePort {
     private final WebClient webClient;
 
-    public boolean isCoursePurchasable(Long courseId) {
-        return Boolean.TRUE.equals(webClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/api/courses/{courseId}/purchasable").build(courseId))
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, this::handleWebClientError)
-                .bodyToMono(Boolean.class)
-                .defaultIfEmpty(false)
-                .block());
-    }
-
     @Override
     public List<CourseDetailDto> findCourseDetailsByIds(List<Long> courseIds) {
         if (courseIds == null || courseIds.isEmpty()) {
             return List.of();
         }
 
-        return webClient.get()
+        String[] idsArray = courseIds.stream()
+                .map(String::valueOf)
+                .toArray(String[]::new);
+
+        Mono<List<CourseDetailDto>> mono = webClient.get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/api/courses")
-                        .queryParam("ids", courseIds.stream().map(String::valueOf).collect(Collectors.joining(",")))
+                        .path("/api/internal/courses")
+                        .queryParam("courseIds", (Object[]) idsArray)
                         .build())
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, this::handleWebClientError)
                 .bodyToFlux(CourseDetailDto.class)
-                .collectList()
-                .block();
+                .collectList();
+
+        return mono.block();
     }
 
     private Mono<? extends Throwable> handleWebClientError(ClientResponse clientResponse) {

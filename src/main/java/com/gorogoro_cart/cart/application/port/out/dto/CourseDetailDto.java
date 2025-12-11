@@ -1,12 +1,25 @@
 package com.gorogoro_cart.cart.application.port.out.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public record CourseDetailDto(
-        String categoryName,
-        String subCategoryName,
-        Long courseId,
-        String courseTitle,
-        String instructorName,
-        Integer price,
-        String coverImgUrl
+        @JsonProperty("courseId") Long courseId,
+        @JsonProperty("title") String courseTitle,
+        @JsonProperty("instructorName") String instructorName,
+        @JsonProperty("price") Integer price,
+        @JsonProperty("coverImageUrl") String coverImgUrl,
+        @JsonProperty("categoryDetail") CategoryDetail categoryDetail
 ) {
+    public record CategoryDetail(
+            @JsonProperty("categoryId") Long categoryId,
+            @JsonProperty("name") String name,
+            @JsonProperty("subCategoryDetailDto") SubCategoryDetail subCategoryDetail
+    ) {
+    }
+
+    public record SubCategoryDetail(
+            @JsonProperty("subCategoryId") Long subCategoryId,
+            @JsonProperty("name") String name
+    ) {
+    }
 }

@@ -2,6 +2,8 @@ package com.gorogoro_cart.cart.infrastructure.adapter;
 
 import com.gorogoro_cart.cart.application.port.out.CoursePort;
 import com.gorogoro_cart.cart.application.port.out.dto.CourseDetailDto;
+import com.gorogoro_cart.cart.common.exception.BusinessException;
+import com.gorogoro_cart.cart.common.exception.ErrorCode;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatusCode;
@@ -39,7 +41,12 @@ public class CourseAdapter implements CoursePort {
 
     private Mono<? extends Throwable> handleWebClientError(ClientResponse clientResponse) {
         return clientResponse.bodyToMono(String.class)
-                .flatMap(errorBody -> Mono.error(new RuntimeException(
-                        "WebClient request failed. Status: " + clientResponse.statusCode() + ", Body: " + errorBody)));
+                .flatMap(errorBody -> Mono.error(
+                        new BusinessException(
+                                ErrorCode.INTERNAL_SERVER_ERROR,
+                                "Course service error. status=%s, body=%s".formatted(
+                                        clientResponse.statusCode(), errorBody)
+                        )
+                ));
     }
 }

@@ -18,20 +18,37 @@ public class CourseAdapter implements CoursePort {
     @Override
     @CircuitBreaker(name = "courseClient", fallbackMethod = "fallbackCourseDetails")
     public List<CourseDetailDto> findCourseDetailsByIds(List<Long> courseIds) {
-        if (courseIds == null || courseIds.isEmpty()) {
-            throw new BusinessException(ErrorCode.MISSING_REQUEST_PARAMETER, "courseIds");
+        validateCourseIds(courseIds);
+        if (courseIds.isEmpty()) {
+            return List.of();
         }
+        return fetchCourseDetails(courseIds);
+    }
+
+    @SuppressWarnings("unused")
+    private List<CourseDetailDto> fallbackCourseDetails(List<Long> courseIds, Throwable throwable) {
+        if (throwable instanceof BusinessException businessException) {
+            throw businessException;
+        }
+        String cause =
+                throwable == null ? "unknown" : throwable.getClass().getSimpleName() + ": " + throwable.getMessage();
+        throw new BusinessException(ErrorCode.COURSE_SERVICE_UNAVAILABLE,
+                "Course service fallback triggered: " + cause);
+    }
+
+    private void validateCourseIds(List<Long> courseIds) {
+        if (courseIds == null) {
+            throw new BusinessException(ErrorCode.MISSING_REQUEST_PARAMETER, "courseIds must not be null");
+        }
+    }
+
+    private List<CourseDetailDto> fetchCourseDetails(List<Long> courseIds) {
         try {
             return courseFeignClient.findCourseDetailsByIds(courseIds);
         } catch (FeignException e) {
             String body = e.contentUTF8();
             String detail = "Course service error. status=%s, body=%s".formatted(e.status(), body);
-            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, detail);
+            throw new BusinessException(ErrorCode.COURSE_SERVICE_UNAVAILABLE, detail);
         }
-    }
-
-    @SuppressWarnings("unused")
-    private List<CourseDetailDto> fallbackCourseDetails(List<Long> courseIds, Throwable throwable) {
-        throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "Course service fallback triggered: " + throwable.getMessage());
     }
 }

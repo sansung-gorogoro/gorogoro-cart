@@ -16,8 +16,11 @@ public enum ErrorCode {
     COURSE_NOT_PURCHASABLE(HttpStatus.CONFLICT, "현재 구매할 수 없는 강의입니다."),
     ALREADY_ENROLLED_COURSE(HttpStatus.CONFLICT, "이미 수강 중인 강의입니다."),
 
-    // 500 INTERNAL_SERVER_ERROR: 서버 내부 오류
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버에 예상치 못한 오류가 발생했습니다.");
+    // 500 INTERNAL_SERVER_ERROR: 서버 내부 오류,
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버에 예상치 못한 오류가 발생했습니다."),
+
+    // 503 SERVICE_UNAVAILABLE: 외부 서비스 불가
+    COURSE_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "강의 서비스가 응답하지 않습니다.");
 
     private final HttpStatus status;
     private final String message;

@@ -16,10 +16,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @Table(name = "cart_item",
-    uniqueConstraints = {
-        @UniqueConstraint(name = "uk_cart_item_user_course",
-            columnNames = {"user_id", "course_id"})
-    })
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_cart_item_user_course", columnNames = {"user_id", "course_id"})
+        })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CartItem {
 
@@ -37,9 +36,9 @@ public class CartItem {
     private Instant addedAt;
 
     private CartItem(Long userId, Long courseId, Instant addedAt) {
-        this.userId = Objects.requireNonNull(userId, "userId must not be null.");
-        this.courseId = Objects.requireNonNull(courseId, "courseId must not be null.");
-        this.addedAt = Objects.requireNonNull(addedAt, "addedAt must not be null.");
+        this.userId = Objects.requireNonNull(userId, "유저 ID는 null일 수 없습니다.");
+        this.courseId = Objects.requireNonNull(courseId, "강좌 ID는 null일 수 없습니다.");
+        this.addedAt = Objects.requireNonNull(addedAt, "추가 시간은 null일 수 없습니다.");
     }
 
     public static CartItem of(Long userId, Long courseId, Instant addedAt) {

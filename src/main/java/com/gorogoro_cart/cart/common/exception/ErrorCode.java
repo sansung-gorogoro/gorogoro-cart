@@ -15,6 +15,7 @@ public enum ErrorCode {
     // 409 CONFLICT: 요청이 서버의 현재 상태와 충돌
     COURSE_NOT_PURCHASABLE(HttpStatus.CONFLICT, "현재 구매할 수 없는 강의입니다."),
     ALREADY_ENROLLED_COURSE(HttpStatus.CONFLICT, "이미 수강 중인 강의입니다."),
+    CART_ITEM_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 장바구니에 담긴 강의입니다."),
 
     // 500 INTERNAL_SERVER_ERROR: 서버 내부 오류,
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버에 예상치 못한 오류가 발생했습니다."),

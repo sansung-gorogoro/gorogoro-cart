@@ -10,6 +10,10 @@ public interface CartJpaRepository extends JpaRepository<CartItem, Long> {
     void deleteByUserIdAndCourseId(Long userId, Long courseId);
 
     void deleteAllByUserId(Long userId);
-    
+
+    void deleteByCourseId(Long courseId);
+
+    boolean existsByCourseId(Long courseId);
+
     List<CartItem> findAllByUserId(Long userId);
 }

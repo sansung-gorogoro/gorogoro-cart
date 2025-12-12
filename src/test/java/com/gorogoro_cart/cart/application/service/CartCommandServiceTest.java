@@ -1,5 +1,6 @@
 package com.gorogoro_cart.cart.application.service;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -7,6 +8,8 @@ import static org.mockito.Mockito.verify;
 import com.gorogoro_cart.cart.application.port.in.command.AddCourseToCartCommand;
 import com.gorogoro_cart.cart.application.port.in.command.ClearCartCommand;
 import com.gorogoro_cart.cart.application.port.in.command.RemoveCartItemCommand;
+import com.gorogoro_cart.cart.common.exception.BusinessException;
+import com.gorogoro_cart.cart.common.exception.ErrorCode;
 import com.gorogoro_cart.cart.domain.model.CartItem;
 import com.gorogoro_cart.cart.domain.repository.CartRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -65,11 +68,27 @@ class CartCommandServiceTest {
         Long userId = 1L;
         Long courseId = 10L;
         RemoveCartItemCommand command = new RemoveCartItemCommand(userId, courseId);
+        given(cartRepository.existsByUserIdAndCourseId(userId, courseId)).willReturn(true);
 
         // when
         cartCommandService.removeCartItem(command);
 
         // then
         verify(cartRepository).deleteByUserIdAndCourseId(userId, courseId);
+    }
+
+    @Test
+    @DisplayName("장바구니에 없는 아이템 삭제 시 예외가 발생한다.")
+    void shouldThrowWhenRemovingNonExistingItem() {
+        // given
+        Long userId = 3L;
+        Long courseId = 30L;
+        RemoveCartItemCommand command = new RemoveCartItemCommand(userId, courseId);
+        given(cartRepository.existsByUserIdAndCourseId(userId, courseId)).willReturn(false);
+
+        // when // then
+        assertThatThrownBy(() -> cartCommandService.removeCartItem(command))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining(ErrorCode.CART_ITEM_NOT_FOUND.getMessage());
     }
 }

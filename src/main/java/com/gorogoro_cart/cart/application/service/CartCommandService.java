@@ -6,6 +6,8 @@ import com.gorogoro_cart.cart.application.port.in.RemoveCartItemUseCase;
 import com.gorogoro_cart.cart.application.port.in.command.AddCourseToCartCommand;
 import com.gorogoro_cart.cart.application.port.in.command.ClearCartCommand;
 import com.gorogoro_cart.cart.application.port.in.command.RemoveCartItemCommand;
+import com.gorogoro_cart.cart.common.exception.BusinessException;
+import com.gorogoro_cart.cart.common.exception.ErrorCode;
 import com.gorogoro_cart.cart.domain.model.CartItem;
 import com.gorogoro_cart.cart.domain.repository.CartRepository;
 import java.time.Instant;
@@ -23,10 +25,7 @@ public class CartCommandService implements AddCourseToCartUseCase, ClearCartUseC
 
     @Override
     public void addCourse(AddCourseToCartCommand command) {
-        if (cartRepository.existsByUserIdAndCourseId(command.userId(), command.courseId())) {
-            log.debug("Duplicated cart item. userId: {}, courseId: {}", command.userId(), command.courseId());
-            return;
-        }
+        validateAlreadyExist(command);
         CartItem newItem = CartItem.of(command.userId(), command.courseId(), Instant.now());
         cartRepository.save(newItem);
     }
@@ -39,5 +38,11 @@ public class CartCommandService implements AddCourseToCartUseCase, ClearCartUseC
     @Override
     public void removeCartItem(RemoveCartItemCommand command) {
         cartRepository.deleteByUserIdAndCourseId(command.userId(), command.courseId());
+    }
+
+    private void validateAlreadyExist(AddCourseToCartCommand command) {
+        if (cartRepository.existsByUserIdAndCourseId(command.userId(), command.courseId())) {
+            throw new BusinessException(ErrorCode.CART_ITEM_ALREADY_EXISTS);
+        }
     }
 }

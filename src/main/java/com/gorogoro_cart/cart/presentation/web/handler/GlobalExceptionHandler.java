@@ -4,7 +4,6 @@ import com.gorogoro_cart.cart.common.exception.BusinessException;
 import com.gorogoro_cart.cart.common.exception.ErrorCode;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -48,17 +47,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleCustomException(BusinessException e) {
         final ErrorCode errorCode = e.getErrorCode();
         return new ResponseEntity<>(new ErrorResponse(errorCode.name(), errorCode.getMessage()), errorCode.getStatus());
-    }
-
-    /**
-     * 데이터베이스 무결성 제약 조건(예: Unique Key 중복) 위반 시 발생하는 예외를 처리합니다.
-     *
-     * @param e DataIntegrityViolationException 객체
-     * @return 200 OK 상태 코드와 비어있는 응답 본문
-     */
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Void> handleDataIntegrityViolation(DataIntegrityViolationException e) {
-        return ResponseEntity.ok().build();
     }
 
     @ExceptionHandler(Exception.class)

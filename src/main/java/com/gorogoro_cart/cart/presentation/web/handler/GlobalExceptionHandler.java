@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
             MissingServletRequestParameterException e) {
         final ErrorCode errorCode = ErrorCode.MISSING_REQUEST_PARAMETER;
         final String message = String.format("필수 파라미터 '%s'(이)가 누락되었습니다.", e.getParameterName());
-        final ErrorResponse response = new ErrorResponse(errorCode.name(), message);
+        final ErrorResponse response = new ErrorResponse(errorCode.getCode(), message);
         return new ResponseEntity<>(response, errorCode.getStatus());
     }
 
@@ -46,19 +46,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleCustomException(BusinessException e) {
         final ErrorCode errorCode = e.getErrorCode();
-        return new ResponseEntity<>(new ErrorResponse(errorCode.name(), errorCode.getMessage()), errorCode.getStatus());
+        return new ResponseEntity<>(new ErrorResponse(errorCode.getCode(), errorCode.getMessage()),
+                errorCode.getStatus());
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
         final ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
         log.error("Unhandled exception occurred: {}", e.getMessage(), e);
-        return new ResponseEntity<>(new ErrorResponse(errorCode.name(), errorCode.getMessage()), errorCode.getStatus());
+        return new ResponseEntity<>(new ErrorResponse(errorCode.getCode(), errorCode.getMessage()),
+                errorCode.getStatus());
     }
 
     private record ErrorResponse(String code, String message) {
         public static ErrorResponse of(ErrorCode code, BindingResult bindingResult) {
-            return new ErrorResponse(code.name(), createErrorMessage(bindingResult));
+            return new ErrorResponse(code.getCode(), createErrorMessage(bindingResult));
         }
 
         private static String createErrorMessage(BindingResult bindingResult) {

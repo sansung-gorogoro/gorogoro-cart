@@ -25,7 +25,7 @@ public class CartCommandService implements AddCourseToCartUseCase, ClearCartUseC
 
     @Override
     public void addCourse(AddCourseToCartCommand command) {
-        validateAlreadyExist(command);
+        requireCartItemPresence(command.userId(), command.courseId(), false);
         CartItem newItem = CartItem.of(command.userId(), command.courseId(), Instant.now());
         cartRepository.save(newItem);
     }
@@ -37,11 +37,16 @@ public class CartCommandService implements AddCourseToCartUseCase, ClearCartUseC
 
     @Override
     public void removeCartItem(RemoveCartItemCommand command) {
+        requireCartItemPresence(command.userId(), command.courseId(), true);
         cartRepository.deleteByUserIdAndCourseId(command.userId(), command.courseId());
     }
 
-    private void validateAlreadyExist(AddCourseToCartCommand command) {
-        if (cartRepository.existsByUserIdAndCourseId(command.userId(), command.courseId())) {
+    private void requireCartItemPresence(Long userId, Long courseId, boolean shouldExist) {
+        boolean exists = cartRepository.existsByUserIdAndCourseId(userId, courseId);
+        if (shouldExist && !exists) {
+            throw new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND);
+        }
+        if (!shouldExist && exists) {
             throw new BusinessException(ErrorCode.CART_ITEM_ALREADY_EXISTS);
         }
     }

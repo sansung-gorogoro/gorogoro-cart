@@ -8,8 +8,10 @@ import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class CourseAdapter implements CoursePort {
@@ -30,10 +32,10 @@ public class CourseAdapter implements CoursePort {
         if (throwable instanceof BusinessException businessException) {
             throw businessException;
         }
-        String cause =
-                throwable == null ? "unknown" : throwable.getClass().getSimpleName() + ": " + throwable.getMessage();
-        throw new BusinessException(ErrorCode.COURSE_SERVICE_UNAVAILABLE,
-                "Course service fallback triggered: " + cause);
+        String causeMessage = (throwable != null) ? throwable.getClass().getSimpleName() + ": " + throwable.getMessage()
+                : "알 수 없는 이유";
+        log.error("Course service fallback triggered for courseIds: {}. Cause: {}", courseIds, causeMessage, throwable);
+        throw new BusinessException(ErrorCode.COURSE_SERVICE_UNAVAILABLE);
     }
 
     private void validateCourseIds(List<Long> courseIds) {
@@ -46,9 +48,8 @@ public class CourseAdapter implements CoursePort {
         try {
             return courseFeignClient.findCourseDetailsByIds(courseIds);
         } catch (FeignException e) {
-            String body = e.contentUTF8();
-            String detail = "Course service error. status=%s, body=%s".formatted(e.status(), body);
-            throw new BusinessException(ErrorCode.COURSE_SERVICE_UNAVAILABLE, detail);
+            log.error("Course service error. status={}, body={}", e.status(), e.contentUTF8());
+            throw new BusinessException(ErrorCode.COURSE_SERVICE_UNAVAILABLE);
         }
     }
 }

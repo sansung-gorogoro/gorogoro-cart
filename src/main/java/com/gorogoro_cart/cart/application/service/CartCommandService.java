@@ -3,13 +3,11 @@ package com.gorogoro_cart.cart.application.service;
 import com.gorogoro_cart.cart.application.port.in.AddCourseToCartUseCase;
 import com.gorogoro_cart.cart.application.port.in.ClearCartUseCase;
 import com.gorogoro_cart.cart.application.port.in.HandleCourseDeletedUseCase;
-import com.gorogoro_cart.cart.application.port.in.HandleUserDeletedUseCase;
 import com.gorogoro_cart.cart.application.port.in.RemoveCartItemUseCase;
 import com.gorogoro_cart.cart.application.port.in.command.AddCourseToCartCommand;
 import com.gorogoro_cart.cart.application.port.in.command.ClearCartCommand;
 import com.gorogoro_cart.cart.application.port.in.command.RemoveCartItemCommand;
 import com.gorogoro_cart.cart.application.port.in.event.CourseDeletedEvent;
-import com.gorogoro_cart.cart.application.port.in.event.UserDeletedEvent;
 import com.gorogoro_cart.cart.application.port.out.CoursePort;
 import com.gorogoro_cart.cart.common.exception.BusinessException;
 import com.gorogoro_cart.cart.common.exception.ErrorCode;
@@ -26,8 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class CartCommandService implements AddCourseToCartUseCase, ClearCartUseCase, RemoveCartItemUseCase,
-        HandleCourseDeletedUseCase, HandleUserDeletedUseCase {
+public class CartCommandService implements AddCourseToCartUseCase, ClearCartUseCase,
+        RemoveCartItemUseCase, HandleCourseDeletedUseCase {
     private final CartRepository cartRepository;
     private final CoursePort coursePort;
 
@@ -57,12 +55,6 @@ public class CartCommandService implements AddCourseToCartUseCase, ClearCartUseC
             return;
         }
         cartRepository.deleteByCourseId(event.courseId());
-    }
-
-    @Override
-    public void handleUserDeleted(UserDeletedEvent event) {
-        log.info("Handling UserDeletedEvent for userId: {}", event.userId());
-        cartRepository.deleteAllByUserId(event.userId());
     }
 
     private void requireCartItemPresence(Long userId, Long courseId, boolean shouldExist) {

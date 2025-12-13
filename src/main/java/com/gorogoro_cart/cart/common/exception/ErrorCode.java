@@ -17,8 +17,6 @@ public enum ErrorCode {
     CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "장바구니에 해당 강좌가 없습니다.", "CRT-4000"),
 
     // 409 CONFLICT: 요청이 서버의 현재 상태와 충돌
-    COURSE_NOT_PURCHASABLE(HttpStatus.CONFLICT, "현재 구매할 수 없는 강의입니다.", "CRT-2000"),
-    ALREADY_ENROLLED_COURSE(HttpStatus.CONFLICT, "이미 수강 중인 강의입니다.", "CRT-2001"),
     CART_ITEM_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 장바구니에 담긴 강의입니다.", "CRT-2002"),
 
     // 500 INTERNAL_SERVER_ERROR: 서버 내부 오류

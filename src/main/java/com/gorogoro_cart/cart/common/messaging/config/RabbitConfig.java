@@ -4,17 +4,17 @@ import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Declarables;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
-import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 @Configuration
 public class RabbitConfig {
@@ -83,18 +83,6 @@ public class RabbitConfig {
         );
     }
 
-    @Bean
-    public Declarables userDeletedBindings(
-            @Qualifier("userDeletedQueue") Queue userDeletedQueue,
-            TopicExchange eventExchange
-    ) {
-        return new Declarables(
-                props.queues().userDeleted().bindings().stream()
-                        .map(rk -> BindingBuilder.bind(userDeletedQueue).to(eventExchange).with(rk))
-                        .toList()
-        );
-    }
-
     /**
      * DLQ의 경우 dead letter queue라는 뜻인데, 죽은 페이로드를 어디에 보낼지 설정하는 것 handle 함수에서 제대로 처리 되지 않을 경우 (catch문을 탈경우) 해당 큐로 다시 처리
      * 된다.
@@ -130,12 +118,7 @@ public class RabbitConfig {
     public Queue courseDeletedQueue() {
         return buildQueue(props.queues().courseDeleted().name());
     }
-
-    @Bean
-    public Queue userDeletedQueue() {
-        return buildQueue(props.queues().userDeleted().name());
-    }
-
+    
     private Queue buildQueue(String name) {
         return QueueBuilder.durable(name)
                 .withArgument("x-dead-letter-exchange", props.dlq().dlx())

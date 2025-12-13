@@ -1,25 +1,71 @@
+server:
+  port: ${SERVER_PORT}
+
 spring:
-  profiles:
-    active: local
+  application:
+    name: gorogoro-cart
+
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
 
   datasource:
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${DB_JDBC_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
 
   jpa:
-    open-in-view: false
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: true
-        use_sql_comments: true
+        show_sql: true
+    open-in-view: false
 
-logging:
-  level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE
-    com.gorogoro_cart: DEBUG
-    feign: DEBUG
+  cloud:
+    openfeign:
+      client:
+        config:
+          course-service:
+            url: ${COURSE_SERVICE_URL}
+
+  rabbitmq:
+    host: ${SANSUNG_IP}
+    port: 5672
+    username: ${RABBIT_ID}
+    password: ${RABBIT_PASSWORD}
+    virtual-host: ${VHOST}
+
+rabbit:
+  events:
+    exchange: lxp.events
+    routing-prefix: lxp.
+    queues:
+      course-deleted:
+        name: cart.course.deleted.q
+        bindings:
+          - lxp.course.deleted
+      user-deleted:
+        name: cart.user.deleted.q
+        bindings:
+          - lxp.user.deleted
+    dlq:
+      dlx: lxp.events.dlx
+      name: lxp.events.dlq
+      routing: lxp.events.dlq
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      courseClient:
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+  timelimiter:
+    instances:
+      courseClient:
+        timeoutDuration: 3s

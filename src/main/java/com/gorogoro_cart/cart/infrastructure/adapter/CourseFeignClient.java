@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(
         name = "course-client",
-        url = "${feign.client.config.course-service.url}"
+        url = "${spring.cloud.openfeign.client.config.course-service.url}"
 )
 public interface CourseFeignClient {
 

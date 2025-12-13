@@ -11,6 +11,7 @@ public enum ErrorCode {
     // 400 BAD_REQUEST: 잘못된 요청
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "입력값이 올바르지 않습니다.", "CRT-1000"),
     MISSING_REQUEST_PARAMETER(HttpStatus.BAD_REQUEST, "필수 요청 파라미터가 누락되었습니다.", "CRT-1001"),
+    COURSE_NOT_FOUND(HttpStatus.BAD_REQUEST, "존재하지 않는 강의입니다.", "CRT-1002"),
 
     // 404 NOT FOUND: 존재하지 않음
     CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "장바구니에 해당 강좌가 없습니다.", "CRT-4000"),

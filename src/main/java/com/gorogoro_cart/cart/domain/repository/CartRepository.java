@@ -12,5 +12,9 @@ public interface CartRepository {
 
     void deleteByUserIdAndCourseId(Long userId, Long courseId);
 
+    void deleteByCourseId(Long courseId);
+
+    boolean existsByCourseId(Long courseId);
+
     List<CartItem> findAllByUserId(Long userId);
 }

@@ -8,13 +8,19 @@ import static org.mockito.Mockito.verify;
 import com.gorogoro_cart.cart.application.port.in.command.AddCourseToCartCommand;
 import com.gorogoro_cart.cart.application.port.in.command.ClearCartCommand;
 import com.gorogoro_cart.cart.application.port.in.command.RemoveCartItemCommand;
+import com.gorogoro_cart.cart.application.port.in.event.CourseDeletedEvent;
+import com.gorogoro_cart.cart.application.port.in.event.UserDeletedEvent;
+import com.gorogoro_cart.cart.application.port.out.CoursePort;
+import com.gorogoro_cart.cart.application.port.out.dto.CourseDetailDto;
 import com.gorogoro_cart.cart.common.exception.BusinessException;
 import com.gorogoro_cart.cart.common.exception.ErrorCode;
 import com.gorogoro_cart.cart.domain.model.CartItem;
 import com.gorogoro_cart.cart.domain.repository.CartRepository;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -28,6 +34,9 @@ class CartCommandServiceTest {
     @Mock
     private CartRepository cartRepository;
 
+    @Mock
+    private CoursePort coursePort;
+
     @Test
     @DisplayName("장바구니에 강좌를 추가할 수 있다.")
     void shouldAddCourseToCart() {
@@ -37,6 +46,7 @@ class CartCommandServiceTest {
         AddCourseToCartCommand command = new AddCourseToCartCommand(userId, courseId);
 
         given(cartRepository.existsByUserIdAndCourseId(userId, courseId)).willReturn(false);
+        given(coursePort.findCourseDetailsByIds(List.of(courseId))).willReturn(List.of(mockCourseDetail(courseId)));
 
         // when
         cartCommandService.addCourse(command);
@@ -90,5 +100,74 @@ class CartCommandServiceTest {
         assertThatThrownBy(() -> cartCommandService.removeCartItem(command))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining(ErrorCode.CART_ITEM_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("강좌 삭제 이벤트 수신 시 해당 강좌를 장바구니에서 제거한다.")
+    void shouldRemoveItemsByCourseIdWhenCourseDeletedEventArrives() {
+        // given
+        CourseDeletedEvent event = new CourseDeletedEvent(20L);
+        given(cartRepository.existsByCourseId(event.courseId())).willReturn(true);
+
+        // when
+        cartCommandService.handleCourseStatusChanged(event);
+
+        // then
+        verify(cartRepository).deleteByCourseId(event.courseId());
+    }
+
+    @Test
+    @DisplayName("강좌 삭제 이벤트 수신 시 장바구니에 없으면 삭제를 건너뛴다.")
+    void shouldSkipDeletingWhenCourseNotPresent() {
+        // given
+        CourseDeletedEvent event = new CourseDeletedEvent(21L);
+        given(cartRepository.existsByCourseId(event.courseId())).willReturn(false);
+
+        // when
+        cartCommandService.handleCourseStatusChanged(event);
+
+        // then
+        verify(cartRepository).existsByCourseId(event.courseId());
+        org.mockito.Mockito.verifyNoMoreInteractions(cartRepository);
+    }
+
+    @Test
+    @DisplayName("회원 삭제 이벤트 수신 시 해당 회원의 장바구니를 비운다.")
+    void shouldClearCartWhenUserDeletedEventArrives() {
+        // given
+        UserDeletedEvent event = new UserDeletedEvent(2L);
+
+        // when
+        cartCommandService.handleUserDeleted(event);
+
+        // then
+        verify(cartRepository).deleteAllByUserId(event.userId());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 강좌를 장바구니에 추가하면 예외가 발생한다.")
+    void shouldThrowWhenCourseNotFoundOnAdd() {
+        // given
+        Long userId = 4L;
+        Long courseId = 40L;
+        AddCourseToCartCommand command = new AddCourseToCartCommand(userId, courseId);
+        given(cartRepository.existsByUserIdAndCourseId(userId, courseId)).willReturn(false);
+        given(coursePort.findCourseDetailsByIds(ArgumentMatchers.eq(List.of(courseId)))).willReturn(List.of());
+
+        // when // then
+        assertThatThrownBy(() -> cartCommandService.addCourse(command))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining(ErrorCode.COURSE_NOT_FOUND.getMessage());
+    }
+
+    private CourseDetailDto mockCourseDetail(Long courseId) {
+        return new CourseDetailDto(
+                courseId,
+                "title",
+                "instructor",
+                0,
+                "cover",
+                null
+        );
     }
 }

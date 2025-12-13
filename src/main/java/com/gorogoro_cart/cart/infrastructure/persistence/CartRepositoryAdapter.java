@@ -33,6 +33,16 @@ public class CartRepositoryAdapter implements CartRepository {
     }
 
     @Override
+    public void deleteByCourseId(Long courseId) {
+        cartJpaRepository.deleteByCourseId(courseId);
+    }
+
+    @Override
+    public boolean existsByCourseId(Long courseId) {
+        return cartJpaRepository.existsByCourseId(courseId);
+    }
+
+    @Override
     public List<CartItem> findAllByUserId(Long userId) {
         return cartJpaRepository.findAllByUserId(userId);
     }

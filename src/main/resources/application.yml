@@ -33,7 +33,7 @@ spring:
             url: ${COURSE_SERVICE_URL}
 
   rabbitmq:
-    host: ${SANSUNG_IP}
+    host: ${SANSEONG_IP}
     port: 5672
     username: ${RABBIT_ID}
     password: ${RABBIT_PASSWORD}

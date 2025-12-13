@@ -41,21 +41,17 @@ spring:
 
 rabbit:
   events:
-    exchange: lxp.events
-    routing-prefix: lxp.
+    exchange: course.event.v1
+    routing-prefix: ''
     queues:
       course-deleted:
-        name: cart.course.deleted.q
+        name: cart.course.deleted.queue
         bindings:
-          - lxp.course.deleted
-      user-deleted:
-        name: cart.user.deleted.q
-        bindings:
-          - lxp.user.deleted
+          - course.deleted
     dlq:
-      dlx: lxp.events.dlx
-      name: lxp.events.dlq
-      routing: lxp.events.dlq
+      dlx: course.dlx.v1
+      name: course.deleted.dead
+      routing: course.deleted.dead
 
 resilience4j:
   circuitbreaker:

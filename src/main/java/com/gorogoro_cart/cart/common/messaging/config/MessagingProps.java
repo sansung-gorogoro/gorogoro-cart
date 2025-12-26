@@ -8,8 +8,17 @@ public record MessagingProps(
         String exchange,
         String routingPrefix,
         Queues queues,
-        DeadLetters dlq
+        DeadLetters dlq,
+        Retry retry
 ) {
+    public record Retry(
+            String exchange,
+            String queue,
+            String routing,
+            Integer ttlMs
+    ) {
+    }
+
     /**
      * 라우팅키 생성 헬퍼. 접두사가 정해져 있으면 붙이고, 없으면 이벤트 타입을 그대로 사용.
      */

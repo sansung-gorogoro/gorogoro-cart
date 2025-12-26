@@ -118,11 +118,11 @@ public class RabbitConfig {
     public Queue courseDeletedQueue() {
         return buildQueue(props.queues().courseDeleted().name());
     }
-    
+
     private Queue buildQueue(String name) {
         return QueueBuilder.durable(name)
-                .withArgument("x-dead-letter-exchange", props.dlq().dlx())
-                .withArgument("x-dead-letter-routing-key", props.dlq().routing())
+                .withArgument("x-dead-letter-exchange", props.retry().exchange())
+                .withArgument("x-dead-letter-routing-key", props.retry().routing())
                 .build();
     }
 }
